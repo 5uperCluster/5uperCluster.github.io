@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laniakea's Archive</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="intro">
+  <div id="stage">
+    <button class="btn main" data-key="activities" style="left:28.30%;top:28.64%">Activities</button>
+    <button class="btn main" data-key="profile"    style="left:72.5%;top:48.36%">Profile</button>
+    <button class="btn main" data-key="contact"    style="left:37%;top:59.53%">Contact</button>
+    <button class="btn main" data-key="blog"       style="left:50%;top:34%">Blog</button>
+  </div>
+
+  <div id="overlay">
+    <svg id="lines" aria-hidden="true"></svg>
+    <div id="subs"></div>
+  </div>
+  <button class="btn" id="back" aria-label="메인으로 돌아가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4"/><path d="M10 6l-6 6 6 6"/></svg></button>
+
+  <h1 id="mtitle">Laniakea's Archive</h1>
+  <div id="mintro">
+    <p>Laniakea's Archive is my personal portfolio, documenting my studies and activities as an aspiring cybersecurity professional. Named and designed after the Laniakea Supercluster, out of my love for astronomy. Feel free to reach out via the Contact tab.</p>
+  </div>
+  <nav id="side" aria-label="메뉴">
+    <button class="sbtn" type="button" data-key="activities" style="--k:0">Activities</button>
+    <span class="vline" style="--k:0" aria-hidden="true"></span>
+    <button class="sbtn" type="button" data-key="contact" style="--k:1">Contact</button>
+    <span class="vline" style="--k:1" aria-hidden="true"></span>
+    <button class="sbtn" type="button" data-key="blog" style="--k:2">Blog</button>
+    <span class="vline" style="--k:2" aria-hidden="true"></span>
+    <button class="sbtn" type="button" data-key="profile" style="--k:3">Profile</button>
+  </nav>
+
+  <div id="veil" aria-hidden="true"></div>
+
+  <!-- Blog: 카테고리별 포스트 목록 / 포스트 페이지 -->
+  <div id="blog" aria-hidden="true">
+    <button class="bbtn" id="home" type="button" aria-label="처음 화면으로">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>
+    </button>
+    <header id="bhead">
+      <h1 id="btitle"></h1>
+      <p id="bsub"></p>
+    </header>
+    <div id="bbody">
+      <nav id="cats" aria-label="카테고리"></nav>
+      <main id="bmain" tabindex="-1"></main>
+    </div>
+  </div>
+
+<script src="blog-data.js"></script>   <!-- build_blog.py가 만드는 글 데이터 (posts/ 폴더의 글) -->
+<script src="script.js"></script>
+</body>
+</html>
