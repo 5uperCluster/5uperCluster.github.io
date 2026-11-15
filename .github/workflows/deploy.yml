@@ -1,0 +1,39 @@
+# GitHub Pages 자동 배포: main 브랜치에 push 하면 build_blog.py 로 blog-data.js 를 만든 뒤 사이트를 배포합니다.
+# 설정: 저장소 Settings → Pages → Build and deployment → Source 를 "GitHub Actions" 로 선택
+name: Deploy blog to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # 글의 처음 올린 날짜(git 기록)를 읽기 위해 전체 기록을 받음
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Build blog-data.js
+        run: python assets/build_blog.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4

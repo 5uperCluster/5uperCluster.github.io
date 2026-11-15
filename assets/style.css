@@ -1,0 +1,291 @@
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#05070f;-webkit-user-select:none;user-select:none}   /* 기본: 텍스트 선택 불가 */
+body{height:100vh;height:100dvh;position:relative;
+     font-family:system-ui,-apple-system,"Segoe UI","Apple SD Gothic Neo","Nanum Gothic",sans-serif}
+
+/* 16:9 무대 — 화면을 덮고 위쪽 기준 고정 → 넘치는 부분은 아래에서 잘림 */
+#stage{position:absolute;top:0;left:50%;
+  width:max(100vw, calc(100dvh * 16 / 9));
+  margin-left:calc(max(100vw, calc(100dvh * 16 / 9)) / -2);
+  aspect-ratio:16/9;transform-origin:0 0;
+  background:url("laniakea_bg.jpg")center top/100% 100% no-repeat}
+
+/* 텍스트 전용 버튼 — 검은 글자 + 은은한 밝은 후광으로 대비 확보 */
+.btn{position:absolute;background:none;border:0;padding:.2em .3em;cursor:pointer;
+  font:inherit;font-weight:300;letter-spacing:.09em;white-space:nowrap;text-decoration:none;
+  color:#fff;isolation:isolate;
+  text-shadow:0 0 1px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
+  transition:transform .3s ease, opacity .45s ease, filter .3s ease}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:4px;border-radius:4px}
+/* 텍스트 주위의 은은한 그라데이션 후광 (가장자리 없이 투명하게 사라짐) */
+/*.btn::before{content:"";position:absolute;inset:-70% -28%;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(4,6,14,.55) 0%,rgba(4,6,14,.32) 45%,rgba(4,6,14,.12) 72%,rgba(4,6,14,0) 100%);
+  transition:opacity .3s ease, transform .3s ease;opacity:.85}*/
+
+.main{font-size:clamp(14px,1.55vw,27px);transform:translate(-50%,-50%)}
+.main:hover,.main:focus-visible,.main.hot{transform:translate(-50%,-50%) scale(1.18)}   /* .hot: 왼쪽 메뉴에 마우스를 올렸을 때 */
+body.zoomed .main{pointer-events:none}          /* 확대 중엔 사진과 함께 커지기만 함 */
+body.zoomed .main:not(.active){opacity:0}      /* 선택한 버튼 외에는 숨김 */
+body.open .main.live{pointer-events:auto}       /* 확대된 화면에서 타이틀도 다시 버튼으로 (Blog) */
+
+#overlay{position:absolute;inset:0;pointer-events:none}
+.sub,#back{position:absolute;opacity:0;pointer-events:none;
+  transition:opacity .5s ease, transform .5s ease, filter .3s ease}
+.sub{font-size:clamp(15px,1.6vw,24px);transform:translate(-50%,-50%) scale(.75)}
+#back{top:clamp(14px,2.5vh,28px);left:clamp(14px,2vw,32px);font-size:clamp(14px,1.3vw,20px);padding:.4em;transform:translateX(-8px)}
+#back svg{display:block;width:1.1em;height:1.1em}
+body.open .sub{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+body.open .sub:hover,body.open .sub:focus-visible{transition-delay:0s!important;transform:translate(-50%,-50%) scale(1.15)}
+body.open #back{opacity:1;pointer-events:auto;transform:none}
+body.open #back:hover,body.open #back:focus-visible{transform:scale(1.12)}
+
+#lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+/* 금빛 실선 곡선 (Activities) — pathLength=1 기준, 글자에서 항목 쪽으로 그려지는 모션 */
+#lines path{fill:none;stroke:#fff8d0;stroke-width:1.6;stroke-linecap:round;
+  stroke-dasharray:1 2;stroke-dashoffset:1.02;
+  filter:drop-shadow(0 0 3px rgba(201, 188, 156, 0.55));
+  transition:stroke-dashoffset .45s ease}
+body.open #lines path{stroke-dashoffset:0;
+  transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1) var(--d,0s)}
+
+/* 일반 텍스트 하위 항목 (Activities) — 버튼 아님 */
+.sub-text{position:absolute;opacity:0;pointer-events:none;white-space:nowrap;
+  color:#fff;font-weight:300;letter-spacing:.09em;font-size:clamp(15px,1.6vw,24px);
+  text-shadow:0 0 1px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
+  transform:translate(-10px,-50%);transition:opacity .3s ease, transform .4s ease}
+body.open .sub-text{opacity:1;pointer-events:auto;transform:translate(0,-50%);
+  transition:opacity .6s ease var(--d,0s), transform .6s ease var(--d,0s)}
+.sub-text.padbtn{padding:.2em .3em}                          /* 버튼과 섞여 있을 때 글자 위치를 버튼 글자와 맞춤 */
+.sub-text .val{margin-left:1.1em;font-size:.9em;opacity:.65}            /* 값(예: 이름/닉네임) */
+.sub-text.child{font-size:clamp(13px,1.3vw,20px);color:rgba(255,255,255,.8)} /* 선 연결 없는 하위 내용 */
+
+/* 첫 진입 연출: 배경 페이드 인(0.7초), 0.6초 시점부터 Activities, Contact, Blog, Profile이 0.17초 간격으로 차례로 등장 */
+body.intro #stage{animation:introBg .7s ease backwards}
+body.intro .main{pointer-events:none;animation:introBtn .4s ease backwards;animation-delay:calc(.6s + var(--k,0)*.17s)}   /* 배경 페이드 인(0.7초)이 끝나기 0.1초 전부터 겹쳐서 시작 */
+@keyframes introBg{from{opacity:0}}
+@keyframes introBtn{from{opacity:0;transform:translate(-50%,calc(-50% + 8px))}}
+@media (prefers-reduced-motion:reduce){ body.intro #stage,body.intro .main{animation:none} }
+
+/* 메인 페이지: 좌측 상단 타이틀 + 왼쪽 세로 메뉴 */
+#mtitle{position:fixed;top:clamp(18px,3.5vh,40px);left:clamp(18px,2.5vw,40px);margin:0;
+  font-size:clamp(25px,2.8vw,48px);font-weight:300;letter-spacing:.24em;line-height:1.1;color:#fff;   /* 메인 버튼(14~27px)의 약 1.8배 */
+  text-shadow:0 0 1px rgba(0,0,0,.55), 0 1px 4px rgba(0,0,0,.5);user-select:none}
+#side{position:fixed;left:clamp(18px,2.5vw,40px);top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;align-items:flex-start;font-size:clamp(14px,1.55vw,27px)}
+.sbtn{background:none;border:0;padding:.2em .3em;cursor:pointer;color:#fff;font:inherit;font-weight:300;
+  letter-spacing:.09em;white-space:nowrap;transform-origin:left center;
+  text-shadow:0 0 1px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);transition:transform .3s ease}
+.sbtn:hover,.sbtn:focus-visible{transform:scale(1.15)}
+.sbtn:focus-visible{outline:2px solid #fff;outline-offset:4px;border-radius:4px}
+.vline{display:block;width:1.25em;height:1px;margin:.9em 0 .9em .3em;         /* 짧은 가로선: 반투명 흰색 단색 (두께·위치는 JS가 글자 획에 맞춤) */
+  background:rgba(255,255,255,.5)}
+/* 확대/블로그 화면에서는 숨김 (Back·블로그 홈 버튼과 겹치지 않도록) */
+/* 타이틀 아래 소개글: 작은 회색 글씨. 클릭을 가로채지 않고, 레이아웃에 영향 없이 빈 공간에만 (겹치면 JS가 글자를 줄이고 폭을 넓혀 비켜 줌) */
+#mintro{position:fixed;left:clamp(18px,2.5vw,40px);
+  top:calc(clamp(18px,3.5vh,40px) + clamp(25px,2.8vw,48px)*1.1 + clamp(8px,1.4vh,16px));      /* 타이틀 바로 아래 */
+  width:min(32em,calc(100vw - 2*clamp(18px,2.5vw,40px)));                                    /* 하나의 글로 자연스럽게 줄바꿈 (보통 4줄 안팎) */
+  font-size:clamp(11px,.8vw,13px);line-height:1.65;font-weight:300;letter-spacing:.02em;
+  color:rgba(190,196,208,.78);text-shadow:0 1px 3px rgba(0,0,0,.6);pointer-events:none}
+#mintro p{margin:0}
+#mtitle,#side,#mintro{transition:opacity .45s ease, visibility 0s}
+body.zoomed #mtitle,body.zoomed #side,body.zoomed #mintro,body.blogmode #mtitle,body.blogmode #side,body.blogmode #mintro{
+  opacity:0;visibility:hidden;pointer-events:none;transition:opacity .45s ease, visibility 0s linear .45s}
+/* 첫 진입 연출: 타이틀은 배경과 함께, 왼쪽 메뉴는 대응하는 메인 버튼과 같은 타이밍으로 */
+body.intro #mtitle{animation:introTitle .9s cubic-bezier(.2,.7,.2,1) .15s backwards}
+body.intro #mintro{animation:introTitle .9s cubic-bezier(.2,.7,.2,1) .25s backwards}      /* 타이틀보다 0.1초 늦게, 같은 모션 */
+body.intro #side{pointer-events:none}
+body.intro .sbtn{animation:introSide .4s ease backwards;animation-delay:calc(.6s + var(--k,0)*.17s)}
+body.intro .vline{animation:introFade .4s ease backwards;animation-delay:calc(.68s + var(--k,0)*.17s)}
+@keyframes introTitle{from{opacity:0;transform:translateX(-14px)}}
+@keyframes introSide{from{opacity:0;transform:translateX(-10px)}}
+@keyframes introFade{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){ body.intro #mtitle,body.intro #mintro,body.intro .sbtn,body.intro .vline{animation:none} }
+
+/* ================= Blog ================= */
+/* 배경 블러: 기존 화면 위에 덮는 베일(backdrop-filter)이 서서히 흐려지며 어두워짐 */
+#veil{position:fixed;inset:0;z-index:5;pointer-events:none;background:rgba(5,8,18,0);
+  -webkit-backdrop-filter:blur(0px);backdrop-filter:blur(0px);
+  transition:background-color .7s ease, backdrop-filter .7s ease, -webkit-backdrop-filter .7s ease}
+body.blogmode #veil{background:rgba(5,8,18,.4);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#overlay{transition:opacity .5s ease .6s}      /* 블로그에서 돌아올 때 하위 메뉴 잔상이 비치지 않도록 늦게 복귀 */
+body.blogmode .main{opacity:0!important;pointer-events:none!important}
+body.blogmode #overlay,body.blogmode #back{opacity:0!important;visibility:hidden;
+  transition:opacity .35s ease, visibility 0s linear .35s}
+
+#blog{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;color:#fff;--hh:clamp(92px,14vh,140px);   /* --hh: 타이틀 영역 높이 */
+  opacity:0;visibility:hidden;transition:opacity .28s ease, visibility 0s linear .28s}
+body.blogmode #blog{opacity:1;visibility:visible;transition:visibility 0s}
+/* 블로그 등장 연출: 홈·제목은 서서히 / 카테고리는 위에서부터 차례로 왼쪽→오른쪽 / 포스트 카드는 아래에서 위로 */
+body.blogmode #home,body.blogmode #bhead{animation:fadeIn .56s ease .21s backwards}
+#cats.enter .cat{animation:slideIn .35s ease backwards;animation-delay:calc(.245s + var(--i,0)*.049s)}
+
+.bbtn{background:none;border:0;padding:0;cursor:pointer;color:#fff;font:inherit;font-weight:300;letter-spacing:.09em;
+  text-shadow:0 0 1px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
+  transition:transform .21s ease, opacity .21s ease, background .21s ease, border-color .21s ease}
+.bbtn:focus-visible{outline:2px solid #fff;outline-offset:4px;border-radius:4px}
+.bbtn:disabled{opacity:.3;cursor:default}
+
+/* 왼쪽 위 작은 홈 버튼 */
+#home{position:absolute;top:clamp(14px,2.5vh,28px);left:clamp(14px,2vw,32px);z-index:2;
+  display:flex;align-items:center;padding:.45em;font-size:clamp(12px,1.05vw,16px);opacity:.85}
+#home:hover,#home:focus-visible{opacity:1;transform:scale(1.08)}
+#home svg{width:1.15em;height:1.15em}
+
+/* 블로그 제목 영역 — 모든 카테고리/포스트에서 유지 */
+#bhead{flex:none;height:var(--hh);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 clamp(70px,9vw,150px);overflow:hidden;
+  transition:opacity .42s cubic-bezier(.2,.7,.2,1), transform .42s cubic-bezier(.2,.7,.2,1)}   /* 목록으로 돌아올 땐 위로 올라오며 등장 */
+#btitle{margin:0;font-weight:300;font-size:clamp(24px,2.8vw,44px);letter-spacing:.22em;text-indent:.22em;
+  text-shadow:0 1px 4px rgba(0,0,0,.5)}
+#bsub{margin:.5em 0 0;font-size:clamp(12px,1vw,15px);font-weight:300;letter-spacing:.14em;opacity:.7;min-height:1em}
+
+#bbody{flex:1;min-height:0;display:flex;gap:clamp(16px,2.4vw,40px);padding:0 0 clamp(12px,3vh,32px) clamp(14px,3vw,48px)}
+/* 본문 화면: 블로그 타이틀은 아래로 내려가며 사라짐. 타이틀 자리는 그대로 두므로 왼쪽 카테고리·다른 글 목록은
+   위치와 크기가 목록 화면과 똑같고, 본문(#bmain)만 타이틀 자리와 아래 여백까지 위·아래 끝으로 넓어짐 */
+#blog.postview #bhead{opacity:0;transform:translateY(34px);pointer-events:none;transition:opacity .18s ease, transform .18s ease}
+#blog.postview #bmain{margin-top:calc(-1 * var(--hh));margin-bottom:calc(-1 * clamp(12px,3vh,32px))}
+#blog.no-t #bhead{transition:none}                                                          /* 블로그가 처음 뜰 때는 전환 없이 바로 */
+
+/* 왼쪽 카테고리 버튼 */
+#cats{flex:none;width:clamp(170px,15vw,250px);display:flex;flex-direction:column;gap:4px;padding:6px 8px 6px 0;
+  overflow:hidden}   /* 카테고리 버튼은 항상 고정 */
+.cat{display:flex;justify-content:space-between;align-items:center;gap:.8em;text-align:left;
+  padding:.65em .9em;border-left:2px solid rgba(255,255,255,.18);border-radius:0 8px 8px 0;font-size:clamp(13px,1.15vw,17px)}
+.cat > span:first-child{min-width:0;overflow-wrap:anywhere}
+.cat .n{font-size:.8em;opacity:.55}
+.cat:hover,.cat:focus-visible{background:rgba(255,255,255,.07);transform:translateX(3px)}
+.cat.cur{border-left-color:rgba(217,182,92,.5)}
+.cat.on{border-left-color:#d9b65c;background:linear-gradient(90deg,rgba(217,182,92,.18),rgba(217,182,92,0))}
+.cat.on .n{opacity:.9}
+.cat.all{margin-bottom:.7em}
+
+/* 스크롤 영역 */
+#bmain{flex:1;min-width:0;overflow-y:auto;overflow-x:hidden;outline:0;padding:20px clamp(14px,3vw,48px) 22px 2px;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%)}
+.bwrap{max-width:1040px;margin:0 auto}
+.lhead{display:flex;justify-content:space-between;align-items:baseline;margin:0 6px 14px;font-weight:300;letter-spacing:.12em;
+  animation:fadeIn .35s ease backwards;animation-delay:var(--d0,0s)}
+.lhead .lt{font-size:clamp(15px,1.4vw,22px)}
+.lhead .lc{font-size:clamp(11px,.9vw,13px);opacity:.6}
+
+.meta{display:flex;flex-wrap:wrap;gap:.4em 1em;align-items:center;font-size:clamp(11px,.95vw,14px);letter-spacing:.08em;opacity:.85}
+.meta .c{color:#e6c97a}
+
+/* 포스트 카드 — 반투명 큰 박스 + 얇은 테두리 + 그림자 */
+/* 포스트 리스트: 행(.row)이 가로선을 갖고 제자리에 고정, 안쪽 항목(.card)만 호버 때 떠오름 → 선은 움직이지 않음 */
+.row{height:clamp(150px,13.5vw,202px);border-bottom:2px solid rgba(255,255,255,.4);   /* 높이 고정 → 모든 항목 동일 크기 */
+  animation:rise .42s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--d0,0s) + var(--i,0)*49ms)}
+.row.na{animation:none}                                         /* 첫 화면 밖의 항목은 애니메이션 없음 */
+.lhead + .row{border-top:2px solid rgba(255,255,255,.4)}
+.rule{border-top:2px solid rgba(255,255,255,.4);animation:fadeIn .35s ease backwards;animation-delay:var(--d0,0s)}   /* 글이 없을 때 제목 아래 가로선 하나 */
+.card{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(14px,2vw,28px);align-items:stretch;position:relative;
+  height:100%;padding:clamp(12px,1.5vw,20px) clamp(6px,1vw,14px);color:#fff;text-decoration:none;
+  transition:transform .21s ease}
+.card.hasimg{grid-template-columns:minmax(0,1fr) clamp(180px,30%,340px)}
+.card:hover,.card:focus-visible{transform:translateY(-3px)}     /* 마우스를 올리면 살짝 떠오름 */
+.card:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.card .txt{min-width:0;min-height:0;overflow:hidden}
+.card h2{margin:.45em 0 .4em;font-weight:400;font-size:clamp(18px,1.7vw,26px);letter-spacing:.04em;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}   /* 제목은 1줄 */
+.card .ex{margin:0;font-weight:300;line-height:1.75;font-size:clamp(13px,1.1vw,16px);opacity:.88;
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}   /* 글 첫 부분은 최대 2줄 */
+.card .thumb{border-radius:10px;overflow:hidden;min-height:0;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.card .thumb img{display:block;width:100%;height:100%;object-fit:cover}
+@keyframes rise{from{opacity:0;transform:translateY(34px)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-22px)}}
+@keyframes fadeIn{from{opacity:0}}
+
+.pager{display:flex;justify-content:center;gap:.5em;margin:10px 0 6px}
+.pager .bbtn{min-width:2.5em;padding:.4em .7em;border:1px solid rgba(255,255,255,.25);border-radius:999px;
+  background:rgba(255,255,255,.06);font-size:clamp(12px,1vw,15px)}
+.pager .bbtn:not(:disabled):hover{background:rgba(255,255,255,.14)}
+.pager .bbtn.on{border-color:#d9b65c;color:#e6c97a}
+
+/* 포스트 페이지: 본문 + 이전 버튼 + 다른 포스트 목록 */
+.pview{width:100%}
+.article{padding:calc(var(--hh) + 6px) clamp(14px,3vw,48px) clamp(24px,5vh,56px) 2px}   /* 위 여백 = 타이틀 영역 + 카테고리 버튼 위 여백 → 본문 시작 높이가 카테고리 맨 위 버튼과 같음 */      /* 박스 없음 (스크롤 영역은 화면 오른쪽 끝까지) */
+.abody{max-width:1040px;margin:0 auto}
+#bmain.post{overflow:hidden;padding:0 0 0 2px;-webkit-mask-image:none;mask-image:none}      /* 위 끝~아래 끝, 오른쪽 끝까지 사용 */
+#bmain.post .pview{height:100%}
+#bmain.post .article{box-sizing:border-box;height:100%;overflow-y:auto;overflow-x:hidden}
+.article{-webkit-user-select:text;user-select:text}             /* 블로그 본문은 텍스트 선택 가능 */
+.article ::selection,.article::selection{background-color:rgba(255,255,255,.22)}   /* 선택 색: 파랑 대신 반투명 회색(글자색은 그대로) */
+.article ::-moz-selection,.article::-moz-selection{background-color:rgba(255,255,255,.22)}
+.article h1{margin:.5em 0 .7em;font-weight:400;font-size:clamp(24px,2.6vw,40px);letter-spacing:.04em;line-height:1.3}
+.content{font-weight:300;line-height:1.95;font-size:clamp(14px,1.2vw,18px)}
+.content p{margin:0 0 1.2em}
+.content img{display:block;max-width:100%;margin:1.4em 0;border-radius:12px;box-shadow:0 10px 26px rgba(0,0,0,.4)}
+.content img.first{float:right;width:clamp(200px,38%,420px);margin:.3em 0 1em 1.6em}   /* 첫 사진은 오른쪽 */
+.content::after{content:"";display:block;clear:both}
+.content h1,.content h2,.content h3,.content h4,.content h5,.content h6{font-weight:400;letter-spacing:.03em;line-height:1.4;margin:1.8em 0 .7em}
+.content h1{font-size:1.5em} .content h2{font-size:1.3em} .content h3{font-size:1.15em} .content h4,.content h5,.content h6{font-size:1.05em}
+.content a{color:#e6c97a;text-decoration:underline;text-underline-offset:3px}
+.content ul,.content ol{margin:0 0 1.2em;padding-left:1.6em} .content li{margin:.25em 0}
+.content blockquote{margin:0 0 1.2em;padding:.2em 1.1em;border-left:2px solid rgba(217,182,92,.7);background:rgba(255,255,255,.04);border-radius:0 8px 8px 0}
+.content blockquote p:last-child{margin-bottom:.6em}
+.content code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;padding:.12em .4em;border-radius:5px;background:rgba(255,255,255,.12)}
+.content pre{margin:0 0 1.4em;padding:1em 1.2em;border-radius:10px;background:rgba(0,0,0,.35);overflow-x:auto;line-height:1.6}
+.content pre code{padding:0;background:none;font-size:.88em}
+.content hr{border:0;height:1px;background:rgba(255,255,255,.25);margin:2em 0}
+.content .tbl{overflow-x:auto;margin:0 0 1.4em} .content table{border-collapse:collapse;min-width:50%}
+.content th,.content td{padding:.5em .9em;border:1px solid rgba(255,255,255,.2)} .content th{background:rgba(255,255,255,.08);font-weight:400}
+.content del{opacity:.6}
+.others{margin-top:.9em;padding:.9em 0 0;border-top:2px solid rgba(255,255,255,.4)}   /* 배경 박스 없음 — 카테고리와의 사이에 가로선 하나만 */
+.others.under{display:none}
+.others.anim{animation:fadeIn .35s ease backwards;animation-delay:var(--d0,0s)}                       /* 가로선: 제자리에서 서서히 나타남 */
+.others.anim .olist{animation:slideIn .35s ease backwards;animation-delay:var(--d0,0s)}              /* 목록: 왼쪽→오른쪽으로 등장 */
+.pview .article{animation:rise .42s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:var(--d0,0s)}  /* 본문 등장: 포스트 목록과 같은 모션 */
+/* 화면 전환 시 사라지는 모션 (등장의 반대): 목록·본문은 아래로 내려가며, 다른 글 목록은 왼쪽으로 빠지며 */
+.bwrap.leaving{pointer-events:none}
+.bwrap.leaving .row{animation:none;opacity:0;transform:translateY(34px);transition:opacity .18s ease var(--ld,0s), transform .18s ease var(--ld,0s)}
+.bwrap.leaving .lhead,.bwrap.leaving .rule,.bwrap.leaving .pager{animation:none;opacity:0;transition:opacity .18s ease}
+.pview.leaving{pointer-events:none}
+.pview.leaving .article{animation:none;opacity:0;transform:translateY(34px);transition:opacity .18s ease, transform .18s ease}
+.others.side.leaving{animation:none;opacity:0;pointer-events:none;transition:opacity .18s ease}
+.others.side.leaving .olist{animation:none;transform:translateX(-22px);transition:transform .18s ease}
+@media (prefers-reduced-motion:reduce){
+  body.blogmode #home,body.blogmode #bhead,#cats.enter .cat,.row,.lhead,.others.anim,.others.anim .olist,.pview .article{animation:none}
+}
+.olist,#bmain,.article{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}  /* 모든 블로그 스크롤바: 최대한 얇게 */
+@supports selector(::-webkit-scrollbar){                   /* Chrome·Safari·Edge: 3px까지 얇게 */
+  .olist,#bmain,.article{scrollbar-width:auto;scrollbar-color:auto}
+  .olist::-webkit-scrollbar,#bmain::-webkit-scrollbar,.article::-webkit-scrollbar{width:3px}
+  .olist::-webkit-scrollbar-track,#bmain::-webkit-scrollbar-track,.article::-webkit-scrollbar-track{background:transparent}
+  .olist::-webkit-scrollbar-thumb,#bmain::-webkit-scrollbar-thumb,.article::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:3px}
+}
+.others.side{flex:1;min-height:0;display:flex;flex-direction:column}
+.olist{position:relative;display:flex;flex-direction:column;gap:6px;overflow-y:auto;overflow-x:hidden}
+@property --ft{syntax:'<length>';inherits:false;initial-value:0px}
+@property --fb{syntax:'<length>';inherits:false;initial-value:0px}
+.others.side .olist{flex:1;min-height:0;                     /* 위/아래 가장자리가 스크롤할 때 서서히 사라짐 (JS가 --ft/--fb 조절) */
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 var(--ft),#000 calc(100% - var(--fb)),transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 var(--ft),#000 calc(100% - var(--fb)),transparent 100%);
+  transition:--ft .175s ease, --fb .175s ease}
+.oi{display:flex;gap:12px;align-items:center;padding:8px;color:#fff;text-decoration:none;transition:transform .21s ease, opacity .21s ease}
+.others .oi{padding-left:calc(clamp(13px,1.15vw,17px)*.9 + 2px)}   /* 글자 왼쪽 끝을 카테고리 글자와 맞춤 */
+.oi .ox{flex:1;min-width:0}
+.oi:hover,.oi:focus-visible{transform:translateY(-3px)}          /* 호버: 살짝 떠오르는 효과만 */
+.oi.cur{opacity:.5;cursor:default}                              /* 지금 보고 있는 글: 조금 어둡게 */
+.oi.cur:hover{transform:none}
+.oi:focus-visible{outline:2px solid #fff}
+.oi .tt{font-weight:400;font-size:clamp(12px,1vw,15px);line-height:1.4;letter-spacing:.03em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 한 줄을 넘으면 … */
+.oi .meta{margin-top:.3em;font-size:11px;gap:.3em .8em}
+
+@media (max-width:760px){
+  #bbody{flex-direction:column;gap:6px}
+  #blog.postview #bmain{margin:0}
+  #blog.postview #bhead{height:0}
+  .article{padding-top:clamp(16px,3vh,28px)}               /* 좁은 화면은 타이틀 영역이 접히므로 기본 여백 */                        /* 높이는 즉시 바뀜 (목록이 올라오는 모션과 어긋나지 않도록) */
+  #cats{width:auto;flex-direction:row;overflow-x:auto;overflow-y:hidden;padding:0 0 6px}
+  .cat{white-space:nowrap;border-left:0;border-bottom:2px solid rgba(255,255,255,.18);border-radius:8px 8px 0 0}
+  .cat.on,.cat.cur{border-bottom-color:#d9b65c}
+  .cat.all{margin-bottom:0}
+  .row{height:220px} .card.hasimg{grid-template-columns:minmax(0,1fr);grid-template-rows:80px minmax(0,1fr);gap:10px}
+  .card .thumb{order:-1;min-height:0}
+  .others.side{display:none} .others.under{display:block;margin-top:1.4em}
+  #bmain.post{overflow-y:auto} #bmain.post .pview{height:auto} #bmain.post .article{height:auto;overflow:visible}
+  .content img.first{float:none;width:100%;margin:1.4em 0}
+}
