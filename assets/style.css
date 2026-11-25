@@ -217,8 +217,6 @@ body.blogmode #home,body.blogmode #bhead{animation:fadeIn .56s ease .21s backwar
 .content{font-weight:300;line-height:1.95;font-size:clamp(14px,1.2vw,18px)}
 .content p{margin:0 0 1.2em}
 .content img{display:block;max-width:100%;margin:1.4em 0;border-radius:12px;box-shadow:0 10px 26px rgba(0,0,0,.4)}
-.content img.first{float:right;width:clamp(200px,38%,420px);margin:.3em 0 1em 1.6em}   /* 첫 사진은 오른쪽 */
-.content::after{content:"";display:block;clear:both}
 .content h1,.content h2,.content h3,.content h4,.content h5,.content h6{font-weight:400;letter-spacing:.03em;line-height:1.4;margin:1.8em 0 .7em}
 .content h1{font-size:1.5em} .content h2{font-size:1.3em} .content h3{font-size:1.15em} .content h4,.content h5,.content h6{font-size:1.05em}
 .content a{color:#e6c97a;text-decoration:underline;text-underline-offset:3px}
@@ -287,5 +285,4 @@ body.blogmode #home,body.blogmode #bhead{animation:fadeIn .56s ease .21s backwar
   .card .thumb{order:-1;min-height:0}
   .others.side{display:none} .others.under{display:block;margin-top:1.4em}
   #bmain.post{overflow-y:auto} #bmain.post .pview{height:auto} #bmain.post .article{height:auto;overflow:visible}
-  .content img.first{float:none;width:100%;margin:1.4em 0}
 }

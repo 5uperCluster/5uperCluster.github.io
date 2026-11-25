@@ -550,8 +550,6 @@
     content.innerHTML = htmlOf(p);                          // 마크다운 → HTML 본문
     const h1 = content.firstElementChild;                   // 본문 첫 줄이 # 제목이면 중복이라 제거
     if (h1 && h1.tagName === 'H1') h1.remove();
-    const first = content.querySelector('img');             // 첫 사진은 본문 맨 위 오른쪽에
-    if (first){ first.classList.add('first'); content.prepend(first); }
     abody.append(meta, el('h1', null, p.title), content);
     art.append(abody);
     wrap.style.setProperty('--d0', entering ? '.385s' : '0s');
