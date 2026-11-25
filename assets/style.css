@@ -213,7 +213,7 @@ body.blogmode #home,body.blogmode #bhead{animation:fadeIn .56s ease .21s backwar
 .article{-webkit-user-select:text;user-select:text}             /* 블로그 본문은 텍스트 선택 가능 */
 .article ::selection,.article::selection{background-color:rgba(255,255,255,.22)}   /* 선택 색: 파랑 대신 반투명 회색(글자색은 그대로) */
 .article ::-moz-selection,.article::-moz-selection{background-color:rgba(255,255,255,.22)}
-.article h1{margin:.5em 0 .7em;font-weight:400;font-size:clamp(24px,2.6vw,40px);letter-spacing:.04em;line-height:1.3}
+.article h1{margin:.5em 0 1.2em;font-weight:400;font-size:clamp(24px,2.6vw,40px);letter-spacing:.04em;line-height:1.3}
 .content{font-weight:300;line-height:1.95;font-size:clamp(14px,1.2vw,18px)}
 .content p{margin:0 0 1.2em}
 .content img{display:block;max-width:100%;margin:1.4em 0;border-radius:12px;box-shadow:0 10px 26px rgba(0,0,0,.4)}
