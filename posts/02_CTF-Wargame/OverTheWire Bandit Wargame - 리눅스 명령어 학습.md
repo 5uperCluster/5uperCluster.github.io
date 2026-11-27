@@ -2,18 +2,20 @@
 
 CyKor 교육생, SSH 로드맵 중 Secrutiy basics 활동을 진행하며, 보안 공부의 가장 밑바탕이 될 리눅스 명령어들을 OverTheWire의 Bandit 워게임을 완주하며 학습했다.
 
-### Level 0
+---
+
+### **Level 0**
 
 SSH를 사용해 게임에 로그인하는 것이 목표이다. 연결할 호스트는 포트 2220의 bandit.labs.overthewire.org이며, username과 password는 bandit0이다. 리눅스의 `ssh` 명령어에서 `-p` 옵션을 사용하면 포트를 지정할 수 있고, username과 호스트는 `@`로 이어붙인다.
 `ssh -p 2220 bandit0@bandit.labs.overthewire.org`을 입력한 후 password를 입력해 로그인한다.
 (`ssh bandit0@bandit.labs.overthewire.org -p 2220`도 가능하다.)
 
-### Level 0 → Level 1
+### **Level 0 → Level 1**
 
 bandit1의 password는 ‘readme’ 파일에 저장되어 있다. `cat` 명령어를 사용하면 파일의 내용을 출력해 볼 수 있다. Level 0과 같이 bandit0으로 로그인한 후, 홈 디렉토리에 위치한 ‘readme’ 파일의 내용을 확인한다.
 `cat readme`를 입력해 readme에 적힌 bandit1의 password를 확인하고, `ssh -p 2220 bandit1@bandit.labs.overthewire.org`로 bandit1에 로그인한다.
 
-### Level 1 → Level 2
+### **Level 1 → Level 2**
 
 bandit2의 password는 홈 디렉토리의 ‘-’라는 이름의 파일에 저장되어 있다. 그냥 `cat -`를 입력하면 `-`가 파일 이름이 아니라 표준 입력을 뜻하는 옵션으로 해석되어 입력을 기다리게 된다. 이때 파일 이름 앞에 현재 디렉토리를 뜻하는 `./`를 붙이면 옵션이 아닌 파일 경로로 인식된다.
 `cat ./-`를 입력해 파일의 내용을 확인한다.
